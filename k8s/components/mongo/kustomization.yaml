@@ -1,0 +1,13 @@
+# MongoDB component - persistent database
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - statefulset.yaml
+  - service.yaml
+
+labels:
+  - pairs:
+      component: mongo
+      app: mongo
+    includeSelectors: false

@@ -1,0 +1,11 @@
+# Namespace to organize all todo-app resources
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todo-app
+---
+# Namespace for Prometheus monitoring stack
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring

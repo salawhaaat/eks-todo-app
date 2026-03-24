@@ -1,0 +1,12 @@
+# Infrastructure layer - shared resources for all components
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - storage-class.yaml
+
+labels:
+  - pairs:
+      layer: infrastructure
+    includeSelectors: false

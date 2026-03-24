@@ -1,0 +1,13 @@
+# Components layer - orchestrates all application components
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - flask/
+  - mongo/
+  - prometheus/
+
+labels:
+  - pairs:
+      layer: components
+    includeSelectors: false

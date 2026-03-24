@@ -1,0 +1,12 @@
+# Slack webhook URL stored as a Secret (for reference / manual use)
+# Alertmanager is configured via prometheus-values.yaml (Helm) instead of
+# AlertmanagerConfig CRD, because the CRD requires alertmanagerConfigSelector
+# to be set in the root Alertmanager spec and does not work out of the box.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-slack-webhook
+  namespace: monitoring
+type: Opaque
+stringData:
+  slack-webhook-url: "YOUR_SLACK_WEBHOOK_URL"

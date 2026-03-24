@@ -1,0 +1,18 @@
+# Service for MongoDB
+# Provides stable network endpoint for pods to connect
+# ClusterIP: None = Headless service (required for StatefulSet)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: todo-app
+  labels:
+    app: mongo
+spec:
+  clusterIP: None             # Headless service - no load balancing
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: mongo-port
+    name: mongo-port

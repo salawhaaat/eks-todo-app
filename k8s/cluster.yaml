@@ -1,0 +1,18 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: todo-app-cluster
+  region: us-east-1
+
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+  - name: todo-app-nodes
+    instanceType: t3.medium
+    desiredCapacity: 1
+
+addons:
+  - name: aws-ebs-csi-driver
+    version: latest

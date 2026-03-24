@@ -1,0 +1,56 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: todo-app-alerts
+  namespace: monitoring
+  labels:
+    prometheus: kube-prometheus
+    release: prometheus
+spec:
+  groups:
+    - name: todo-app
+      interval: 30s
+      rules:
+        # Alert when Flask pod crashes
+        - alert: FlaskPodDown
+          expr: |-
+            absent(kube_pod_status_phase{namespace="todo-app", pod=~"flask-app.*", phase="Running"})
+          for: 0s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Flask pod is down"
+            description: "Flask pod in todo-app namespace is not running"
+
+        # Alert when MongoDB pod crashes
+        - alert: MongoDBPodDown
+          expr: |-
+            absent(kube_pod_status_phase{namespace="todo-app", pod="mongo-0", phase="Running"})
+          for: 0s
+          labels:
+            severity: critical
+          annotations:
+            summary: "MongoDB pod is down"
+            description: "MongoDB StatefulSet pod mongo-0 is not running. Data may be at risk."
+
+        # Alert on pod restart spike
+        - alert: PodRestartingTooOften
+          expr: |-
+            rate(kube_pod_container_status_restarts_total{namespace="todo-app"}[15m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.pod }} is restarting"
+            description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+
+        # Alert on high memory usage
+        - alert: HighMemoryUsage
+          expr: |-
+            container_memory_usage_bytes{namespace="todo-app"} / container_spec_memory_limit_bytes > 0.8
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory usage on {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of memory limit"

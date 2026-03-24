@@ -1,0 +1,45 @@
+# Helm values for kube-prometheus-stack
+# Install: SLACK_WEBHOOK_URL=$(kubectl get secret alertmanager-slack-webhook \
+#   -n monitoring -o jsonpath='{.data.slack-webhook-url}' | base64 -d) \
+#   helm install prometheus prometheus-community/kube-prometheus-stack \
+#   -n monitoring --create-namespace \
+#   -f k8s/components/prometheus/prometheus-values.yaml \
+#   --set alertmanager.config.receivers[0].slack_configs[0].api_url="$SLACK_WEBHOOK_URL"
+
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname', 'severity']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: slack-notifications
+      routes:
+        - receiver: 'null'
+          matchers:
+            - alertname =~ "InfoInhibitor|Watchdog"
+    receivers:
+      - name: 'null'
+      - name: slack-notifications
+        slack_configs:
+          - api_url: 'SLACK_WEBHOOK_URL_PLACEHOLDER'  # Injected via --set at deploy time; see install command above
+            channel: '#assignments'
+            send_resolved: true
+            title: '{{ .GroupLabels.alertname }}'
+            text: >-
+              {{ range .Alerts }}
+              *Alert:* {{ .Annotations.summary }}
+              *Details:* {{ .Annotations.description }}
+              *Severity:* {{ .Labels.severity }}
+              {{ end }}
+            color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+prometheus:
+  prometheusSpec:
+    # Pick up PrometheusRule resources with label release=prometheus from all namespaces
+    ruleSelector:
+      matchLabels:
+        release: prometheus
+    ruleNamespaceSelector: {}

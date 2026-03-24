@@ -1,0 +1,63 @@
+# StatefulSet for MongoDB
+# StatefulSet guarantees:
+# - Stable pod names (mongo-0, mongo-1, etc.)
+# - Persistent storage per pod
+# - Ordered startup/shutdown
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: todo-app
+  labels:
+    app: mongo
+spec:
+  serviceName: mongo          # Must match service name below
+  replicas: 1                 # Number of MongoDB instances
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:5.0
+        ports:
+        - containerPort: 27017
+          name: mongo-port
+        # Resource requests help Kubernetes schedule pods
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        # Health check - restart pod if unhealthy
+        livenessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        # Readiness check - only send traffic when pod is ready
+        readinessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        # Mount the persistent volume
+        volumeMounts:
+        - name: mongo-storage
+          mountPath: /data/db    # MongoDB stores data here
+  # Persistent volume claims - automatically creates PVs via StorageClass
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: ebs-gp3  # Uses EBS CSI driver for dynamic provisioning
+      resources:
+        requests:
+          storage: 5Gi

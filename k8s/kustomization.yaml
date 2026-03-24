@@ -1,0 +1,20 @@
+# Root kustomization - orchestrates base and components
+# Deploy everything: kubectl apply -k k8s/
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base infrastructure + Components
+resources:
+  - base/
+  - components/
+
+# Global labels for all resources
+labels:
+  - pairs:
+      managed-by: kustomize
+      project: todo-app
+    includeSelectors: false
+
+# Global annotations for all resources
+commonAnnotations:
+  description: "TODO app with Flask and MongoDB on EKS"
